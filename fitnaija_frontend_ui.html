@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FitNaija — AI-Powered Fitness App</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React + ReactDOM + Babel -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sky: { chrome: '#c9dff0', light: '#e8f3fb', mid: '#a8c8e8', deep: '#5b9bc8', ink: '#1a3a52' },
+            milk: '#f5f2ee', offgray: '#2e2e2e', muted: '#5a5a5a', faint: '#b8b0a8',
+            accent: '#ff5b1f', 'accent-light': '#fff0eb', surface: '#fdfaf7', card: '#ffffff',
+          },
+          fontFamily: {
+            serif: ['"DM Serif Display"', 'Georgia', 'serif'],
+            sans: ['"DM Sans"', 'Arial', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: #f5f2ee; font-family: 'DM Sans', Arial, sans-serif; color: #2e2e2e; min-height: 100vh; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #e8f3fb; }
+    ::-webkit-scrollbar-thumb { background: #a8c8e8; border-radius: 3px; }
+    .serif { font-family: 'DM Serif Display', Georgia, serif; }
+    .glass { background: rgba(255,255,255,0.72); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(201,223,240,0.55); }
+    .chrome-bg { background: linear-gradient(135deg, #e8f3fb 0%, #f5f2ee 45%, #ddeef9 100%); }
+    .btn-accent { background: #ff5b1f; color: #fff; border: none; cursor: pointer; transition: background 0.18s, transform 0.12s; border-radius: 10px; }
+    .btn-accent:hover { background: #e04a10; }
+    .btn-accent:active { transform: scale(0.97); }
+    .btn-accent:disabled { background: #d4d4d4; cursor: not-allowed; }
+    .btn-ghost { background: transparent; color: #2e2e2e; border: 1.5px solid #c9dff0; cursor: pointer; transition: all 0.15s; border-radius: 10px; }
+    .btn-ghost:hover { background: #e8f3fb; border-color: #a8c8e8; }
+    .fit-input { background: rgba(255,255,255,0.85); border: 1.5px solid #c9dff0; border-radius: 10px; padding: 11px 16px; font-size: 15px; width: 100%; outline: none; transition: all 0.18s; font-family: 'DM Sans', Arial, sans-serif; }
+    .fit-input:focus { border-color: #5b9bc8; box-shadow: 0 0 0 3px rgba(91,155,200,0.15); }
+    .fit-input::placeholder { color: #b8b0a8; }
+    .nav-pill { padding: 8px 18px; border-radius: 99px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; border: none; background: transparent; color: #5a5a5a; }
+    .nav-pill.active { background: #2e2e2e; color: #fff; }
+    .nav-pill:not(.active):hover { background: #e8f3fb; color: #2e2e2e; }
+    .lboard-bar { height: 8px; border-radius: 4px; background: #c9dff0; overflow: hidden; }
+    .lboard-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #5b9bc8, #ff5b1f); transition: width 0.6s ease; }
+    .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 9px; border-radius: 99px; }
+    .badge-active { background: #e1f5eb; color: #1a6b3a; }
+    .badge-trial { background: #fff0eb; color: #c44000; }
+    .badge-upcoming { background: #e8f3fb; color: #1a3a52; }
+    .badge-settled { background: #f1f1f1; color: #5a5a5a; }
+    .medal-1 { color: #d4a017; }
+    .medal-2 { color: #888; }
+    .medal-3 { color: #b87333; }
+    .bubble-ai { background: rgba(201,223,240,0.45); border: 1px solid #c9dff0; border-radius: 18px 18px 18px 4px; padding: 12px 16px; max-width: 78%; font-size: 14px; line-height: 1.6; }
+    .bubble-user { background: #2e2e2e; color: #fff; border-radius: 18px 18px 4px 18px; padding: 12px 16px; max-width: 78%; font-size: 14px; line-height: 1.6; margin-left: auto; }
+    @keyframes blink { 0%,80%,100% { opacity:0 } 40% { opacity:1 } }
+    .dot { animation: blink 1.4s infinite both; display:inline-block; width:6px; height:6px; border-radius:50%; background:#5b9bc8; margin:0 2px; }
+    .dot:nth-child(2) { animation-delay: .2s; }
+    .dot:nth-child(3) { animation-delay: .4s; }
+    @keyframes fadeUp { from { opacity:0; transform: translateY(14px); } to { opacity:1; transform: none; } }
+    .fade-up { animation: fadeUp 0.38s ease both; }
+    .chip { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 500; background: #e8f3fb; color: #1a3a52; border: 1px solid #c9dff0; }
+    .divider { height: 1px; background: #c9dff0; opacity: 0.55; margin: 0; }
+    .step-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
+    .step-dot.done { background: #2e2e2e; color: #fff; }
+    .step-dot.active { background: #ff5b1f; color: #fff; }
+    .step-dot.pending { background: #e8f3fb; color: #b8b0a8; border: 1.5px solid #c9dff0; }
+    .error-message { background: #ffe8e0; border: 1px solid #ffb3a0; border-radius: 8px; padding: 12px; color: #c44000; font-size: 13px; }
+    .success-message { background: #e1f5eb; border: 1px solid #a8d5ba; border-radius: 8px; padding: 12px; color: #1a6b3a; font-size: 13px; }
+    .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+
+// ─── CONFIGURATION ──────────────────────────────────────────────────────────
+const API_BASE = "http://localhost:8000";
+
+// ─── GLOBAL STATE ───────────────────────────────────────────────────────────
+let currentUser = null;
+let allChallenges = [];
+let userActivities = [];
+
+// ─── API HELPER ──────────────────────────────────────────────────────────────
+async function apiCall(endpoint, options = {}) {
+  try {
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+      },
+      ...options
+    };
+
+    if (options.body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
+      config.body = JSON.stringify(options.body);
+    }
+
+    const res = await fetch(API_BASE + endpoint, config);
+    
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || `HTTP ${res.status}: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error(`[API Error] ${endpoint}:`, err.message);
+    throw err;
+  }
+}
+
+// ─── HELPER FUNCTIONS ────────────────────────────────────────────────────────
+const fmt = n => n ? n.toLocaleString() : '0';
+const fmtNaira = n => '₦' + (n || 0).toLocaleString();
+const locationLabel = l => l ? l.charAt(0).toUpperCase() + l.slice(1).replace('_', ' ') : '—';
+const activityIcon = t => t === 'running' ? '🏃' : t === 'cycling' ? '🚴' : '👟';
+
+function formatRelativeTime(timestamp) {
+  const date = new Date(timestamp);
+  const diff = Math.floor((Date.now() - date) / 1000);
+  if (diff < 60) return "just now";
+  if (diff < 3600) return Math.floor(diff / 60) + " min ago";
+  if (diff < 86400) return Math.floor(diff / 3600) + " hr ago";
+  return Math.floor(diff / 86400) + " days ago";
+}
+
+// ─── COMPONENTS ──────────────────────────────────────────────────────────────
+
+function Avatar({ label, size = 36, color = '#c9dff0', textColor = '#1a3a52' }) {
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: '50%',
+      background: color, color: textColor,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontWeight: 600, fontSize: size * 0.33, flexShrink: 0,
+      fontFamily: '"DM Sans", Arial, sans-serif',
+      border: '2px solid rgba(255,255,255,0.7)',
+    }}>
+      {label}
+    </div>
+  );
+}
+
+function Rank({ n }) {
+  if (n === 1) return <span className="medal-1 font-bold text-lg">🥇</span>;
+  if (n === 2) return <span className="medal-2 font-bold text-lg">🥈</span>;
+  if (n === 3) return <span className="medal-3 font-bold text-lg">🥉</span>;
+  return <span className="text-sm font-semibold text-muted">#{n}</span>;
+}
+
+function ChallengeCard({ ch, onClick }) {
+  const statusClass = { active: 'badge-active', upcoming: 'badge-upcoming', verification: 'badge-trial', settled: 'badge-settled' };
+  const statusLabel = { active: 'Live', upcoming: 'Upcoming', verification: 'In Review', settled: 'Settled' };
+  
+  return (
+    <div
+      className="glass rounded-2xl p-5 cursor-pointer hover:shadow-md transition-all fade-up"
+      style={{ borderLeft: ch.status === 'active' ? '3px solid #ff5b1f' : '3px solid #c9dff0' }}
+      onClick={() => onClick && onClick(ch)}
+    >
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xl">{activityIcon(ch.activity_type)}</span>
+            <span className={`badge ${statusClass[ch.status] || 'badge-upcoming'}`}>{statusLabel[ch.status]}</span>
+          </div>
+          <h3 className="serif text-lg leading-tight text-offgray">{ch.title}</h3>
+        </div>
+        {ch.prize_pool > 0 && (
+          <div className="text-right flex-shrink-0">
+            <div className="text-xs text-faint mb-0.5">Prize Pool</div>
+            <div className="font-bold text-accent text-base">{fmtNaira(ch.prize_pool)}</div>
+          </div>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-2 text-xs text-muted mt-2">
+        <span className="chip">{ch.participants} participants</span>
+        {ch.location_scope && <span className="chip">📍 {locationLabel(ch.location_scope)}</span>}
+        {ch.entry_fee > 0 && <span className="chip">Entry: {fmtNaira(ch.entry_fee)}</span>}
+      </div>
+    </div>
+  );
+}
+
+// ─── LANDING SCREEN ──────────────────────────────────────────────────────────
+function LandingScreen({ onLogin }) {
+  const [step, setStep] = React.useState(1);
+  const [phone, setPhone] = React.useState('');
+  const [otp, setOtp] = React.useState('');
+  const [name, setName] = React.useState('');
+  const [location, setLocation] = React.useState('');
+  const [sentOtp, setSentOtp] = React.useState('');
+  const [error, setError] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [isNewUser, setIsNewUser] = React.useState(false);
+
+  const handleSendOtp = async () => {
+    if (!phone || phone.length < 10) {
+      setError('Enter a valid Nigerian phone number.');
+      return;
+    }
+    setError('');
+    setLoading(true);
+    try {
+      const data = await apiCall("/auth/send-otp", {
+        method: "POST",
+        body: { phone }
+      });
+      setSentOtp(data.otp);
+      setStep(2);
+    } catch (e) {
+      setError(`Failed to send OTP: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (otp !== sentOtp) {
+      setError(`Incorrect OTP. (Hint: ${sentOtp})`);
+      return;
+    }
+    setError('');
+    setLoading(true);
+    try {
+      const data = await apiCall("/auth/verify-otp", {
+        method: "POST",
+        body: { phone, otp }
+      });
+      
+      if (data.is_new) {
+        setIsNewUser(true);
+        setStep(3);
+      } else {
+        currentUser = data.user;
+        onLogin();
+      }
+    } catch (e) {
+      setError(`Verification failed: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateProfile = async () => {
+    if (!name.trim()) {
+      setError('Please enter your display name.');
+      return;
+    }
+    if (!location) {
+      setError('Please select your location.');
+      return;
+    }
+    setError('');
+    setLoading(true);
+    try {
+      const data = await apiCall("/auth/create-profile", {
+        method: "POST",
+        body: { phone, display_name: name.trim(), location }
+      });
+      currentUser = data.user;
+      onLogin();
+    } catch (e) {
+      setError(`Profile creation failed: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const steps = [
+    { n: 1, label: 'Phone' },
+    { n: 2, label: 'Verify' },
+    { n: 3, label: 'Profile' }
+  ];
+
+  return (
+    <div className="chrome-bg min-h-screen flex flex-col">
+      <div className="text-center pt-16 pb-10 px-6">
+        <div className="inline-flex items-center gap-2 mb-5">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white text-lg" style={{background:'#ff5b1f'}}>F</div>
+          <span className="serif text-2xl text-offgray tracking-tight">FitNaija</span>
+        </div>
+        <h1 className="serif text-4xl md:text-5xl text-offgray leading-tight mb-3">
+          AI-Powered<br/>Fitness App.
+        </h1>
+        <p className="text-muted text-base max-w-xs mx-auto leading-relaxed">
+          Built with you in mind. Compete with your Abuja community. Win real prizes.
+        </p>
+      </div>
+
+      <div className="flex items-center justify-center gap-0 mb-8 px-6">
+        {steps.map((s, i) => (
+          <React.Fragment key={s.n}>
+            <div className="flex flex-col items-center gap-1.5">
+              <div className={`step-dot ${step > s.n ? 'done' : step === s.n ? 'active' : 'pending'}`}>
+                {step > s.n ? '✓' : s.n}
+              </div>
+              <span className="text-xs text-faint">{s.label}</span>
+            </div>
+            {i < steps.length - 1 && (
+              <div className="flex-1 h-px mx-2 mt-[-14px]" style={{background: step > s.n ? '#2e2e2e' : '#c9dff0', maxWidth: 48}} />
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+
+      <div className="max-w-sm mx-auto w-full px-5 pb-16 fade-up">
+        <div className="glass rounded-2xl p-6 shadow-lg">
+          {step === 1 && (
+            <>
+              <h2 className="serif text-xl mb-1 text-offgray">Enter your number</h2>
+              <p className="text-xs text-faint mb-5">You'll receive an OTP via SMS or WhatsApp.</p>
+              <input className="fit-input mb-4" type="tel" placeholder="+234 803 123 4567" value={phone} onChange={e => setPhone(e.target.value)} />
+              {error && <div className="error-message mb-3">{error}</div>}
+              <button className="btn-accent w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2" onClick={handleSendOtp} disabled={loading}>
+                {loading ? <><span className="loading-spinner"></span> Sending OTP…</> : 'Send OTP →'}
+              </button>
+              <p className="text-center text-xs text-faint mt-4">By continuing you agree to our terms. Your 1-month free trial starts immediately.</p>
+            </>
+          )}
+          {step === 2 && (
+            <>
+              <h2 className="serif text-xl mb-1 text-offgray">Enter your OTP</h2>
+              <p className="text-xs text-faint mb-5">Sent to <strong>{phone}</strong>. Check SMS or WhatsApp.</p>
+              <input className="fit-input mb-4 text-center text-2xl tracking-widest" type="text" maxLength={6} placeholder="——" value={otp} onChange={e => setOtp(e.target.value)} />
+              {error && <div className="error-message mb-3">{error}</div>}
+              <button className="btn-accent w-full py-3 rounded-xl text-sm font-semibold" onClick={handleVerifyOtp} disabled={loading}>
+                {loading ? 'Verifying…' : 'Verify OTP →'}
+              </button>
+              <button className="btn-ghost w-full py-2.5 rounded-xl text-sm mt-2" onClick={() => { setStep(1); setError(''); setOtp(''); }}>← Back</button>
+            </>
+          )}
+          {step === 3 && (
+            <>
+              <h2 className="serif text-xl mb-1 text-offgray">Set up your profile</h2>
+              <p className="text-xs text-faint mb-5">Almost there! Tell us who you are and where you run.</p>
+              <label className="text-xs font-semibold text-muted block mb-1.5">Display Name</label>
+              <input className="fit-input mb-4" type="text" placeholder="e.g. Ada Wuse" value={name} onChange={e => setName(e.target.value)} />
+              <label className="text-xs font-semibold text-muted block mb-1.5">Your Location</label>
+              <select className="fit-input mb-5" value={location} onChange={e => setLocation(e.target.value)} style={{appearance:'none', cursor:'pointer'}}>
+                <option value="">— Select your area —</option>
+                <optgroup label="Abuja">
+                  {['maitama','wuse','garki','asokoro','apo','lokogoma','guzape','lugbe','kubwa'].map(l => (
+                    <option key={l} value={l}>{locationLabel(l)}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Extended Regions">
+                  <option value="lagos">Lagos</option>
+                  <option value="port_harcourt">Port Harcourt</option>
+                </optgroup>
+              </select>
+              {error && <div className="error-message mb-3">{error}</div>}
+              <button className="btn-accent w-full py-3 rounded-xl text-sm font-semibold" onClick={handleCreateProfile} disabled={loading}>
+                {loading ? 'Creating…' : 'Create Account & Start Trial 🎉'}
+              </button>
+            </>
+          )}
+        </div>
+
+        {step === 1 && (
+          <div className="flex flex-wrap justify-center gap-2 mt-6">
+            {['1-month free trial', '₦15k/month after', 'Win real prize money', 'No biometrics needed'].map(f => (
+              <span key={f} className="chip">{f}</span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── CHALLENGES TAB ──────────────────────────────────────────────────────────
+function ChallengesTab() {
+  const [filter, setFilter] = React.useState('all');
+  const [selected, setSelected] = React.useState(null);
+  const [challenges, setChallenges] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState('');
+  const user = currentUser;
+
+  React.useEffect(() => {
+    fetchChallenges();
+  }, [filter]);
+
+  const fetchChallenges = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const endpoint = filter === 'all' ? '/challenges' : `/challenges?status=${filter}`;
+      const data = await apiCall(endpoint);
+      setChallenges(data || []);
+      allChallenges = data || [];
+    } catch (e) {
+      setError(`Failed to load challenges: ${e.message}`);
+      setChallenges([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (selected) {
+    return <ChallengeDetail ch={selected} onBack={() => setSelected(null)} />;
+  }
+
+  const filters = ['all', 'active', 'upcoming', 'settled'];
+  const filtered = filter === 'all' ? challenges : challenges.filter(c => c.status === filter);
+
+  return (
+    <div className="fade-up">
+      {user?.status === 'trial_active' && (
+        <div className="rounded-2xl p-4 mb-6 flex items-center gap-4" style={{background:'linear-gradient(135deg,#fff0eb,#fdf5f2)', border:'1.5px solid #ffd0bb'}}>
+          <span className="text-3xl">🎉</span>
+          <div>
+            <p className="font-semibold text-sm text-offgray">Your free trial is active!</p>
+            <p className="text-xs text-muted">Explore all challenges. Upgrade to Pro after your 30-day trial for ₦15,000/month.</p>
+          </div>
+          <button className="btn-accent px-4 py-2 rounded-xl text-xs font-semibold ml-auto flex-shrink-0">Upgrade</button>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="serif text-2xl text-offgray">Challenges</h2>
+        <span className="text-sm text-faint">{challenges.length} total</span>
+      </div>
+
+      <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
+        {filters.map(f => (
+          <button key={f} className={`nav-pill whitespace-nowrap ${filter === f ? 'active' : ''}`} style={{fontSize:13}} onClick={() => setFilter(f)}>
+            {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {error && <div className="error-message mb-4">{error}</div>}
+
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="inline-block loading-spinner" style={{borderWidth: '3px', width: '32px', height: '32px'}}></div>
+          <p className="text-muted mt-3">Loading challenges...</p>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-muted">No challenges found</p>
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2">
+          {filtered.map(ch => (
+            <ChallengeCard key={ch.id} ch={ch} onClick={setSelected} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── CHALLENGE DETAIL ────────────────────────────────────────────────────────
+function ChallengeDetail({ ch, onBack }) {
+  const [joined, setJoined] = React.useState(false);
+  const [leaderboard, setLeaderboard] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState('');
+
+  React.useEffect(() => {
+    fetchLeaderboard();
+  }, [ch.id]);
+
+  const fetchLeaderboard = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await apiCall(`/leaderboard/${ch.id}`);
+      setLeaderboard(data || []);
+    } catch (e) {
+      setError(`Failed to load leaderboard: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fade-up">
+      <button className="btn-ghost px-4 py-2 rounded-xl text-sm mb-5 flex items-center gap-1" onClick={onBack}>
+        ← Back to Challenges
+      </button>
+
+      <div className="glass rounded-2xl p-6 mb-5">
+        <div className="flex items-start gap-3 mb-4">
+          <span className="text-4xl">{activityIcon(ch.activity_type)}</span>
+          <div>
+            <h2 className="serif text-2xl text-offgray leading-tight">{ch.title}</h2>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <span className={`badge ${{active:'badge-active',upcoming:'badge-upcoming',verification:'badge-trial',settled:'badge-settled'}[ch.status] || ''}`}>
+                {{active:'Live',upcoming:'Upcoming',verification:'In Review',settled:'Settled'}[ch.status] || ch.status}
+              </span>
+              {ch.location_scope && <span className="chip">📍 {locationLabel(ch.location_scope)}</span>}
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-4 mt-4">
+          {[
+            { label: 'Prize Pool', value: ch.prize_pool > 0 ? fmtNaira(ch.prize_pool) : 'Community', highlight: true },
+            { label: 'Entry Fee', value: ch.entry_fee > 0 ? fmtNaira(ch.entry_fee) : 'Free' },
+            { label: 'Participants', value: ch.participants },
+          ].map(m => (
+            <div key={m.label} className="rounded-xl p-3 text-center" style={{background:'rgba(201,223,240,0.25)'}}>
+              <div className="text-xs text-faint mb-1">{m.label}</div>
+              <div className={`font-bold text-base ${m.highlight ? 'text-accent' : 'text-offgray'}`}>{m.value}</div>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-3 mt-5">
+          {ch.status !== 'settled' && (
+            <button
+              className="btn-accent flex-1 py-3 rounded-xl text-sm font-semibold"
+              onClick={() => setJoined(true)}
+            >
+              {joined ? '✓ Joined!' : ch.entry_fee > 0 ? `Join · ${fmtNaira(ch.entry_fee)}` : 'Join Challenge'}
+            </button>
+          )}
+          <button className="btn-ghost flex-1 py-3 rounded-xl text-sm font-semibold">Share</button>
+        </div>
+      </div>
+
+      <div className="glass rounded-2xl p-6">
+        <h3 className="serif text-lg text-offgray mb-4">Leaderboard</h3>
+        {error && <div className="error-message mb-4">{error}</div>}
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="inline-block loading-spinner" style={{borderWidth: '3px', width: '24px', height: '24px'}}></div>
+          </div>
+        ) : leaderboard.length === 0 ? (
+          <p className="text-muted text-sm">No entries yet</p>
+        ) : (
+          <div className="space-y-3">
+            {leaderboard.slice(0, 10).map((entry, idx) => (
+              <div key={entry.user_id} className="flex items-center justify-between p-3 rounded-xl" style={{background:'rgba(201,223,240,0.15)'}}>
+                <div className="flex items-center gap-3">
+                  <Rank n={entry.rank} />
+                  <Avatar label={entry.avatar} size={32} />
+                  <div>
+                    <p className="text-sm font-semibold text-offgray">{entry.user_name}</p>
+                    <p className="text-xs text-muted">{fmt(entry.steps)} steps</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="lboard-bar" style={{width: 60}}>
+                    <div className="lboard-bar-fill" style={{width: `${(entry.steps / (leaderboard[0]?.steps || 1)) * 100}%`}}></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── LEADERBOARD TAB ─────────────────────────────────────────────────────────
+function LeaderboardTab() {
+  const [leaderboard, setLeaderboard] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState('');
+
+  React.useEffect(() => {
+    fetchGlobalLeaderboard();
+  }, []);
+
+  const fetchGlobalLeaderboard = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await apiCall('/users');
+      setLeaderboard(data || []);
+    } catch (e) {
+      setError(`Failed to load leaderboard: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fade-up">
+      <h2 className="serif text-2xl text-offgray mb-5">Global Leaderboard</h2>
+
+      {error && <div className="error-message mb-4">{error}</div>}
+
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="inline-block loading-spinner" style={{borderWidth: '3px', width: '32px', height: '32px'}}></div>
+          <p className="text-muted mt-3">Loading leaderboard...</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {leaderboard.map((user, idx) => (
+            <div key={user.id} className="glass rounded-2xl p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Rank n={idx + 1} />
+                <Avatar label={user.avatar} size={40} />
+                <div>
+                  <p className="font-semibold text-offgray">{user.display_name}</p>
+                  <p className="text-xs text-muted">{locationLabel(user.location)}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="font-bold text-accent text-lg">{fmt(user.steps_total)}</p>
+                <p className="text-xs text-faint">steps</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── LOG WORKOUT TAB ─────────────────────────────────────────────────────────
+function LogWorkoutTab({ onLog }) {
+  const [challenge, setChallenge] = React.useState('');
+  const [activity, setActivity] = React.useState('steps');
+  const [duration, setDuration] = React.useState('');
+  const [steps, setSteps] = React.useState('');
+  const [distance, setDistance] = React.useState('');
+  const [file, setFile] = React.useState(null);
+  const [fileName, setFileName] = React.useState('');
+  const [submitting, setSubmitting] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const [success, setSuccess] = React.useState('');
+  const [challenges, setChallenges] = React.useState([]);
+  const [loadingChallenges, setLoadingChallenges] = React.useState(true);
+  const user = currentUser;
+
+  React.useEffect(() => {
+    fetchChallengesForLog();
+  }, []);
+
+  const fetchChallengesForLog = async () => {
+    setLoadingChallenges(true);
+    try {
+      const data = await apiCall('/challenges?status=active');
+      setChallenges(data || []);
+    } catch (e) {
+      console.error('Failed to load challenges:', e.message);
+    } finally {
+      setLoadingChallenges(false);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const f = e.target.files?.[0];
+    if (f) {
+      setFile(f);
+      setFileName(f.name);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setError('');
+    setSuccess('');
+
+    // Validation
+    if (!activity) {
+      setError('Please select an activity type');
+      return;
+    }
+    if (!duration || parseInt(duration) <= 0) {
+      setError('Please enter a valid duration');
+      return;
+    }
+    if (!steps || parseInt(steps) < 0) {
+      setError('Please enter valid steps');
+      return;
+    }
+    if (activity === 'cycling' && (!distance || parseFloat(distance) <= 0)) {
+      setError('Please enter a valid distance for cycling');
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('user_id', user.id);
+      if (challenge) formData.append('challenge_id', challenge);
+      formData.append('activity_type', activity);
+      formData.append('duration_minutes', parseInt(duration));
+      formData.append('steps', parseInt(steps));
+      if (distance) formData.append('distance_km', parseFloat(distance));
+      if (file) formData.append('proof_image', file);
+
+      const result = await fetch(API_BASE + '/activities/log', {
+        method: 'POST',
+        body: formData
+      }).then(r => r.json());
+
+      if (result.success) {
+        setSuccess('Workout logged successfully! 🎉');
+        // Reset form
+        setChallenge('');
+        setActivity('steps');
+        setDuration('');
+        setSteps('');
+        setDistance('');
+        setFile(null);
+        setFileName('');
+        
+        // Fetch updated activities
+        if (user?.id) {
+          userActivities = await apiCall(`/activities/user/${user.id}`);
+        }
+
+        setTimeout(() => {
+          setSuccess('');
+          onLog?.();
+        }, 2000);
+      } else {
+        setError(result.message || 'Failed to log workout');
+      }
+    } catch (e) {
+      setError(`Error logging workout: ${e.message}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fade-up max-w-2xl">
+      <h2 className="serif text-2xl text-offgray mb-6">Log Your Workout</h2>
+
+      <div className="glass rounded-2xl p-6 space-y-5">
+        {/* Activity Type */}
+        <div>
+          <label className="text-xs font-semibold text-muted block mb-2">Activity Type</label>
+          <div className="grid grid-cols-3 gap-3">
+            {['steps', 'running', 'cycling'].map(type => (
+              <button
+                key={type}
+                onClick={() => setActivity(type)}
+                className="p-3 rounded-xl border-2 transition-all text-center"
+                style={{
+                  borderColor: activity === type ? '#ff5b1f' : '#c9dff0',
+                  background: activity === type ? '#fff0eb' : 'transparent',
+                  color: activity === type ? '#ff5b1f' : '#5a5a5a'
+                }}
+              >
+                <span className="text-2xl block mb-1">{activityIcon(type)}</span>
+                <span className="text-xs font-semibold capitalize">{type}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Challenge Selection */}
+        <div>
+          <label className="text-xs font-semibold text-muted block mb-2">Challenge (Optional)</label>
+          <select
+            className="fit-input"
+            value={challenge}
+            onChange={e => setChallenge(e.target.value)}
+            style={{appearance: 'none', cursor: 'pointer'}}
+            disabled={loadingChallenges}
+          >
+            <option value="">— Select a challenge —</option>
+            {challenges.map(ch => (
+              <option key={ch.id} value={ch.id}>{ch.title}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Duration */}
+        <div>
+          <label className="text-xs font-semibold text-muted block mb-2">Duration (minutes)</label>
+          <input
+            type="number"
+            className="fit-input"
+            placeholder="30"
+            value={duration}
+            onChange={e => setDuration(e.target.value)}
+            min="1"
+          />
+        </div>
+
+        {/* Steps */}
+        <div>
+          <label className="text-xs font-semibold text-muted block mb-2">Steps</label>
+          <input
+            type="number"
+            className="fit-input"
+            placeholder="5000"
+            value={steps}
+            onChange={e => setSteps(e.target.value)}
+            min="0"
+          />
+        </div>
+
+        {/* Distance (for cycling) */}
+        {activity === 'cycling' && (
+          <div>
+            <label className="text-xs font-semibold text-muted block mb-2">Distance (km)</label>
+            <input
+              type="number"
+              className="fit-input"
+              placeholder="5.5"
+              value={distance}
+              onChange={e => setDistance(e.target.value)}
+              min="0"
+              step="0.1"
+            />
+          </div>
+        )}
+
+        {/* Proof Image */}
+        <div>
+          <label className="text-xs font-semibold text-muted block mb-2">Proof Image (Optional)</label>
+          <div className="border-2 border-dashed border-sky-mid rounded-xl p-4 text-center cursor-pointer hover:border-accent transition-colors">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              style={{display: 'none'}}
+              id="proof-file"
+            />
+            <label htmlFor="proof-file" style={{cursor: 'pointer', display: 'block'}}>
+              {fileName ? (
+                <>
+                  <span className="text-lg">✓</span>
+                  <p className="text-xs text-muted mt-1">{fileName}</p>
+                </>
+              ) : (
+                <>
+                  <span className="text-2xl block mb-1">📸</span>
+                  <p className="text-xs text-muted">Click to upload proof image</p>
+                </>
+              )}
+            </label>
+          </div>
+        </div>
+
+        {/* Messages */}
+        {error && <div className="error-message">{error}</div>}
+        {success && <div className="success-message">{success}</div>}
+
+        {/* Submit Button */}
+        <button
+          className="btn-accent w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+          onClick={handleSubmit}
+          disabled={submitting}
+        >
+          {submitting ? (
+            <>
+              <span className="loading-spinner"></span>
+              Logging workout…
+            </>
+          ) : (
+            '✓ Log Workout'
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── AI COACH TAB ────────────────────────────────────────────────────────────
+function CoachTab() {
+  const [messages, setMessages] = React.useState([
+    { type: 'ai', text: 'Hey! I\'m your AI fitness coach. Ask me anything about workouts, nutrition, or fitness goals! 💪' }
+  ]);
+  const [input, setInput] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const messagesEndRef = React.useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  React.useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!input.trim()) return;
+
+    const userMessage = input.trim();
+    setInput('');
+    setMessages(prev => [...prev, { type: 'user', text: userMessage }]);
+    setLoading(true);
+
+    try {
+      const data = await apiCall('/ai/chat', {
+        method: 'POST',
+        body: { message: userMessage }
+      });
+      setMessages(prev => [...prev, { type: 'ai', text: data.reply }]);
+    } catch (e) {
+      setMessages(prev => [...prev, { type: 'ai', text: 'Sorry, I\'m having trouble responding. Please try again.' }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fade-up max-w-2xl h-[600px] flex flex-col">
+      <h2 className="serif text-2xl text-offgray mb-4">AI Coach</h2>
+
+      <div className="glass rounded-2xl flex-1 p-4 overflow-y-auto mb-4 space-y-3">
+        {messages.map((msg, idx) => (
+          <div key={idx} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={msg.type === 'user' ? 'bubble-user' : 'bubble-ai'}>
+              {msg.text}
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div className="flex justify-start">
+            <div className="bubble-ai">
+              <span className="dot"></span>
+              <span className="dot"></span>
+              <span className="dot"></span>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <div className="flex gap-2">
+        <input
+          type="text"
+          className="fit-input"
+          placeholder="Ask me anything..."
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyPress={e => e.key === 'Enter' && handleSend()}
+          disabled={loading}
+        />
+        <button
+          className="btn-accent px-6 py-3 rounded-xl text-sm font-semibold"
+          onClick={handleSend}
+          disabled={loading || !input.trim()}
+        >
+          Send
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── PROFILE TAB ─────────────────────────────────────────────────────────────
+function ProfileTab({ onLogout }) {
+  const [activities, setActivities] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState('');
+  const user = currentUser;
+
+  React.useEffect(() => {
+    if (user?.id) {
+      fetchUserActivities();
+    }
+  }, [user?.id]);
+
+  const fetchUserActivities = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await apiCall(`/activities/user/${user.id}`);
+      setActivities(data || []);
+    } catch (e) {
+      setError(`Failed to load activities: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fade-up max-w-2xl space-y-6">
+      {/* Profile Card */}
+      <div className="glass rounded-2xl p-6">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-4">
+            <Avatar label={user?.avatar} size={60} />
+            <div>
+              <h2 className="serif text-2xl text-offgray">{user?.display_name}</h2>
+              <p className="text-sm text-muted">{locationLabel(user?.location)}</p>
+              <span className={`badge mt-2 ${user?.status === 'trial_active' ? 'badge-trial' : 'badge-active'}`}>
+                {user?.status === 'trial_active' ? 'Trial' : 'Pro'}
+              </span>
+            </div>
+          </div>
+          <button className="btn-ghost px-4 py-2 rounded-xl text-sm" onClick={onLogout}>
+            Logout
+          </button>
+        </div>
+        <div className="divider my-4"></div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-xs text-faint mb-1">Total Steps</p>
+            <p className="font-bold text-2xl text-accent">{fmt(user?.steps_total)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-faint mb-1">Phone</p>
+            <p className="font-semibold text-sm text-offgray">{user?.phone}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Activities */}
+      <div className="glass rounded-2xl p-6">
+        <h3 className="serif text-lg text-offgray mb-4">Recent Activities</h3>
+        {error && <div className="error-message mb-4">{error}</div>}
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="inline-block loading-spinner" style={{borderWidth: '3px', width: '24px', height: '24px'}}></div>
+          </div>
+        ) : activities.length === 0 ? (
+          <p className="text-muted text-sm">No activities logged yet</p>
+        ) : (
+          <div className="space-y-3">
+            {activities.slice(0, 10).map(act => (
+              <div key={act.id} className="flex items-center justify-between p-3 rounded-xl" style={{background:'rgba(201,223,240,0.15)'}}>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{activityIcon(act.activity_type)}</span>
+                  <div>
+                    <p className="text-sm font-semibold text-offgray capitalize">{act.activity_type}</p>
+                    <p className="text-xs text-muted">{formatRelativeTime(act.created_at)}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-accent">{fmt(act.steps)}</p>
+                  <p className="text-xs text-faint">{act.duration_minutes} min</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Support Section */}
+      <div className="glass rounded-2xl p-6">
+        <h3 className="serif text-lg text-offgray mb-3">Support the Mission</h3>
+        <p className="text-sm text-muted mb-4">Help us keep FitNaija running. Every tip helps!</p>
+        <button className="btn-accent w-full py-3 rounded-xl text-sm font-semibold">Send a Tip 💝</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── MAIN APP SHELL ──────────────────────────────────────────────────────────
+function AppShell({ onLogout }) {
+  const [tab, setTab] = React.useState('challenges');
+  const user = currentUser;
+
+  const navItems = [
+    { id: 'challenges', icon: '🏆', label: 'Challenges' },
+    { id: 'leaderboard', icon: '📊', label: 'Leaderboard' },
+    { id: 'log', icon: '➕', label: 'Log Workout' },
+    { id: 'coach', icon: '🤖', label: 'AI Coach' },
+    { id: 'profile', icon: '👤', label: 'Profile' },
+  ];
+
+  return (
+    <div className="chrome-bg min-h-screen flex flex-col">
+      <header className="glass sticky top-0 z-40" style={{borderBottom:'1px solid rgba(201,223,240,0.5)'}}>
+        <div className="max-w-5xl mx-auto flex items-center justify-between px-5 py-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-sm" style={{background:'#ff5b1f'}}>F</div>
+            <span className="serif text-xl text-offgray">FitNaija</span>
+          </div>
+          <div className="hidden md:flex items-center gap-1">
+            {navItems.map(n => (
+              <button key={n.id} className={`nav-pill ${tab === n.id ? 'active' : ''}`} onClick={() => setTab(n.id)}>
+                {n.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-3">
+            <span className={`badge ${user?.status === 'trial_active' ? 'badge-trial' : 'badge-active'}`}>
+              {user?.status === 'trial_active' ? 'Trial' : 'Pro'}
+            </span>
+            <Avatar label={user?.avatar || 'U'} size={34} />
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6">
+        {tab === 'challenges' && <ChallengesTab />}
+        {tab === 'leaderboard' && <LeaderboardTab />}
+        {tab === 'log' && <LogWorkoutTab onLog={() => setTab('challenges')} />}
+        {tab === 'coach' && <CoachTab />}
+        {tab === 'profile' && <ProfileTab onLogout={onLogout} />}
+      </main>
+
+      <nav className="md:hidden glass sticky bottom-0 z-40" style={{borderTop:'1px solid rgba(201,223,240,0.5)'}}>
+        <div className="flex justify-around py-2">
+          {navItems.map(n => (
+            <button
+              key={n.id}
+              onClick={() => setTab(n.id)}
+              className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all"
+              style={{background: tab === n.id ? '#fff0eb' : 'transparent', minWidth:56}}
+            >
+              <span className="text-xl">{n.icon}</span>
+              <span className="text-[10px] font-semibold" style={{color: tab === n.id ? '#ff5b1f' : '#b8b0a8'}}>{n.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
+    </div>
+  );
+}
+
+// ─── ROOT APP ────────────────────────────────────────────────────────────────
+function App() {
+  const [isLoggedIn, setIsLoggedIn] = React.useState(!!currentUser);
+
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    currentUser = null;
+    setIsLoggedIn(false);
+  };
+
+  return isLoggedIn ? (
+    <AppShell onLogout={handleLogout} />
+  ) : (
+    <LandingScreen onLogin={handleLogin} />
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
