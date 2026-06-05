@@ -1,6 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+const API_BASE = (
+    import.meta.env.DEV
+        ? (import.meta.env.VITE_LOCAL_API_BASE || 'http://localhost:8000')
+        : (import.meta.env.VITE_API_BASE || 'https://fitnaija-backend.onrender.com')
+).replace(/\/$/, '');
 const STORAGE_KEY = 'fitnaija_auth';
 let authToken = '';
 let currentUser = null;
